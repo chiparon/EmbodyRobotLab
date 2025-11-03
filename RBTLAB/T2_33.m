@@ -1,30 +1,22 @@
-%chiparon 10/30
-clear; clc; close all;
+% PUMA 562  —  Standard DH model
+clear; clc;
+% [theta d a alpha]  (degrees)
+dh = [  90   0   0   -90;
+         45   6  15     0;
+          0   0   1   -90;
+          0  18   0    90;
+        -45   0   0   -90;
+          0   0   0     0];
 
-% 1. 定义标准 D–H 参数表
+L(1) = Link('revolute','d',dh(1,2),'a',dh(1,3),'alpha',deg2rad(dh(1,4)),'offset',deg2rad(dh(1,1)));
+L(2) = Link('revolute','d',dh(2,2),'a',dh(2,3),'alpha',deg2rad(dh(2,4)),'offset',deg2rad(dh(2,1)));
+L(3) = Link('revolute','d',dh(3,2),'a',dh(3,3),'alpha',deg2rad(dh(3,4)),'offset',deg2rad(dh(3,1)));
+L(4) = Link('revolute','d',dh(4,2),'a',dh(4,3),'alpha',deg2rad(dh(4,4)),'offset',deg2rad(dh(4,1)));
+L(5) = Link('revolute','d',dh(5,2),'a',dh(5,3),'alpha',deg2rad(dh(5,4)),'offset',deg2rad(dh(5,1)));
+L(6) = Link('revolute','d',dh(6,2),'a',dh(6,3),'alpha',deg2rad(dh(6,4)),'offset',deg2rad(dh(6,1)));
 
-L1 = Link([0     27    0     pi/2 ], 'standard');  % 关节1
-L2 = Link([0      6   15     0    ], 'standard');  % 关节2
-L3 = Link([pi/4   0    1     pi/2 ], 'standard');  % 关节3
-L4 = Link([0     18    0     0    ], 'standard');  % 关节4
-L5 = Link([0      0    0     0    ], 'standard');  % 关节5
-L6 = Link([0      0    0     0    ], 'standard');  % 关节6
+puma = SerialLink(L,'name','PUMA 562');
 
-
-robot = SerialLink([L1 L2 L3 L4 L5 L6], 'name', 'PUMA_2_33');
-
-% 显示 D–H 参数验证
-robot.display();
-
-q = [0 0 0 0 0 0];    % 各关节角度初始为0
-figure;
-robot.plot(q, ...
-    'workspace', [-50 50 -50 50 0 60], ...
-    'scale', 0.8, ...
-    'floorlevel', 0, ...
-    'jointcolor', 'r', ...
-    'linkcolor', [0 0.5 1], ...
-    'basecolor', [0 0 0]);
-
-title('实验 2.33 标准 D–H 建模结果');
-xlabel('X'); ylabel('Y'); zlabel('Z'); grid on;
+theta = deg2rad([0 45 0 0 -45 0]);
+T06 = puma.fkine(theta);
+disp(T06);

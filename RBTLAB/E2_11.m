@@ -1,65 +1,35 @@
-% ============================================================
-% 实验 2.11 坐标系多次旋转和平移验证（带动画）
-% 基于《Matlab Robotics Toolbox 仿真实验手册》P7–14
-% CHIPARON,10/30,2025
-% ============================================================
-
+% Example 2.11 — 正确顺序：左乘(固定轴) + 右乘(当前轴)
 clear; clc; close all;
 
-% ------------------------------------------------------------
-% (a) 定义每步齐次变换
-% ------------------------------------------------------------
-T1 = trotx(pi/2);        % Step1: 绕参考系 x 轴旋转 90°
-T2 = transl(3, 0, 0);    % Step2: 沿当前坐标系 a 轴平移 3 英寸
-T3 = trotz(pi/2);        % Step3: 绕参考系 z 轴旋转 90°
-T4 = transl(0, 0, 5);    % Step4: 沿当前坐标系 o 轴平移 5 英寸
+% 变换按“固定轴左乘、当前轴右乘”累积
+T = eye(4);
+T = trotx(90) * T;          % 1) 参考x旋转90°
+T = T * transl(3,0,0);      % 2) 当前x平移3
+T = trotz(90) * T;          % 3) 参考z旋转90°
+T = T * transl(5,0,0);      % 4) 当前x平移5
 
-% ------------------------------------------------------------
-% (b) 动画演示坐标系变化
-% ------------------------------------------------------------
-figure; hold on; grid on; axis equal;
-xlabel('X'); ylabel('Y'); zlabel('Z');
-view(135, 30);
-title('实验 2.11 坐标系多次变换动画');
+% 作用到点 Bp = [1;5;4;1]
+pB  = [1;5;4;1];
+pU  = T * pB;
 
-% 绘制初始坐标系 {A}
-trplot(eye(4), 'frame', '{A}', 'color', 'b', 'length', 2);
+disp('T ='); disp(T);
+disp('pU ='); disp(pU(1:3));
 
-% Step1: 绕 x 轴旋转 90°
-tranimate(eye(4), T1, 'frame', '{B1}', 'color', 'r', 'length', 2);
-pause(1);
+% 动画
+figure; hold on; grid on; axis equal; view(135,30);
+xlabel X; ylabel Y; zlabel Z;
+trplot(eye(4),'frame','U','color','b','length',2);
 
-% Step2: 沿当前坐标系平移 3 英寸
-T12 = T1 * T2;
-tranimate(T1, T12, 'frame', '{B2}', 'color', 'g', 'length', 2);
-pause(1);
+T1 = trotx(90)        * eye(4);
+T2 = T1               * transl(3,0,0);
+T3 = trotz(90)        * T2;
+T4 = T3               * transl(5,0,0);
 
-% Step3: 绕参考 z 轴旋转 90°
-T23 = T12 * T3;
-tranimate(T12, T23, 'frame', '{B3}', 'color', 'm', 'length', 2);
-pause(1);
+tranimate(eye(4),T1, 'frame','1','color','r','length',2); pause(0.5);
+tranimate(T1,   T2,  'frame','2','color','g','length',2); pause(0.5);
+tranimate(T2,   T3,  'frame','3','color','m','length',2); pause(0.5);
+tranimate(T3,   T4,  'frame','B','color','k','length',2); pause(0.5);
 
-% Step4: 沿当前坐标系 z 轴平移 5 英寸
-T_total = T23 * T4;
-tranimate(T23, T_total, 'frame', '{B}', 'color', 'r', 'length', 2);
-pause(1);
-
-% ------------------------------------------------------------
-% (c) 计算点 p 在参考坐标系下的位置
-% ------------------------------------------------------------
-p_local = [1; 5; 4; 1];
-p_ref = T_total * p_local;
-
-disp('最终的齐次变换矩阵 T_total = ');
-disp(T_total);
-disp('点 p 在参考坐标系下的位置 = ');
-disp(p_ref(1:3));
-
-% ------------------------------------------------------------
-% (d) 绘制最终坐标系与点位置
-% ------------------------------------------------------------
-trplot(T_total, 'frame', '{B}', 'color', 'r', 'length', 2);
-plot3(p_ref(1), p_ref(2), p_ref(3), 'ro', 'MarkerFaceColor', 'r');
-text(p_ref(1), p_ref(2), p_ref(3), '  p', 'FontSize', 10, 'Color', 'r');
-
-xlim([-5 10]); ylim([-5 10]); zlim([0 10]);
+plot3(pU(1),pU(2),pU(3),'ro','MarkerFaceColor','r'); text(pU(1),pU(2),pU(3),'  p');
+xlim([-5 10]); ylim([-5 10]); zlim([0 12]);
+title('Ex 2.11 ');
